@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Disk Scheduling Algorithm</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        form {
+            margin-right: 40px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            display: block;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #result h2 {
+            font-size: 1.5em;
+            margin: 0.5em 0;
+        }
+        #total_head_movement {
+            font-size: 1.2em;
+            margin-top: 10px;
+            color: #333;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const methodSelect = document.getElementById('method');
+            const maxDiskField = document.getElementById('max_disk_field');
+            const maxDiskInput = document.getElementById('max_disk');
+            const form = document.querySelector('form');
+            const resultSection = document.getElementById('result');
+            const totalHeadMovement = document.getElementById('total_head_movement');
+
+            function toggleMaxDiskField() {
+                if (methodSelect.value === 'SCAN' || methodSelect.value === 'CSCAN') {
+                    maxDiskField.style.display = 'block';
+                    maxDiskInput.setAttribute('required', 'required');
+                } else {
+                    maxDiskField.style.display = 'none';
+                    maxDiskInput.removeAttribute('required');
+                }
+            }
+
+            methodSelect.addEventListener('change', toggleMaxDiskField);
+            toggleMaxDiskField();  // Initialize the visibility on page load
+
+            form.addEventListener('submit', function (event) {
+                event.preventDefault(); // Prevent the form from submitting the traditional way
+                
+                const formData = new FormData(form);
+                fetch('/submit', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Update the result section
+                    resultSection.innerHTML = `
+                        <h2>Disk Scheduling Result</h2>
+                        <img src="data:image/png;base64,${data.imgBase64}" alt="Disk Movement">
+                        <div id="total_head_movement">Total Head Movements: ${data.total_head_movement}</div>
+                    `;
+                    resultSection.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+                method.value="";
+                maxDiskInput.value="";
+                document.getElementById("initial_position").value="";
+                document.getElementById("disk_requests").value="";
+                maxDiskField.style.display = 'none';
+                maxDiskInput.removeAttribute('required');
+
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <form>
+            <label for="method">Algorithm:</label>
+            <select id="method" name="method" required>
+                <option value="" disabled selected>SELECT AN ALGORITHM</option>
+                <option value="FCFS">FCFS</option>
+                <option value="SSTF">SSTF</option>
+                <option value="SCAN">SCAN</option>
+                <option value="CSCAN">CSCAN</option>
+                <option value="LOOK">LOOK</option>
+                <option value="CLOOK">CLOOK</option>
+            </select><br><br>
+
+
+            <label for="initial_position">Current Position:</label>
+            <input type="text" id="initial_position" name="initial_position" required><br><br>
+
+
+            <label for="disk_requests">Request Positions (comma-separated):</label>
+            <input type="text" id="disk_requests" name="disk_requests" required><br><br>
+
+
+            <div id="max_disk_field" style="display: none;">
+                <label for="max_disk">Maximum Disk (for SCAN/CSCAN):</label>
+                <input type="text" id="max_disk" name="max_disk"><br><br>
+            </div>
+
+
+            <button type="submit">Submit</button>
+
+        </form>
+        <div id="result" style="display: none;"></div>
+    </div>
+</body>
+</html>
